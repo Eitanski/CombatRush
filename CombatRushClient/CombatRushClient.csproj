@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net6.0-windows</TargetFramework>
+        <RollForward>Major</RollForward>
+        <PublishReadyToRun>false</PublishReadyToRun>
+        <TieredCompilation>false</TieredCompilation>
+        <UseWindowsForms>true</UseWindowsForms>
+    </PropertyGroup>
+    <PropertyGroup>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>Icon.ico</ApplicationIcon>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="MonoGame.Aseprite" Version="6.0.6" />
+        <PackageReference Include="MonoGame.Extended.Animations" Version="3.9.0-prerelease.4"/>
+        <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303"/>
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303"/>
+        <PackageReference Include="MonoGame.Spritesheet" Version="2.0.0"/>
+        <PackageReference Include="Stateless" Version="5.16.0" />
+        <PackageReference Include="StateMachine" Version="1.2.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="$(ProjectDir)\SpriteSheets\Pawn_Blue.aseprite"
+            CopyToOutputDirectory= "PreserveNewest"
+              LinkBase="SpriteSheets"
+        />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <MonoGameContentReference Include="Content\Content.mgcb" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\..\..\.nuget\packages\monogame.extended.content.pipeline\3.8.0\contentFiles\any\netcoreapp3.1\.gitignore">
+        <Link>.gitignore</Link>
+      </Content>
+    </ItemGroup>
+    
+    <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
+        <Message Text="Restoring dotnet tools" Importance="High"/>
+        <Exec Command="dotnet tool restore"/>
+    </Target>
+</Project>
