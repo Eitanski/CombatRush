@@ -1,10 +1,10 @@
-﻿using AsepriteDotNet.Aseprite;
+﻿using System.Linq;
+using AsepriteDotNet.Aseprite;
 using AsepriteDotNet.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Aseprite;
-using AnimatedSprite = MonoGame.Aseprite.AnimatedSprite;
 
 namespace CombatRushClient;
 
@@ -12,8 +12,8 @@ public class Game : Microsoft.Xna.Framework.Game
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
-    private IEntity[] _entities;
-    private SpriteFont _font;
+    private IGameEntity[] _entities;
+    public static SpriteFont _font;
 
     public Game()
     {
@@ -34,7 +34,10 @@ public class Game : Microsoft.Xna.Framework.Game
 
         var spriteSheet = aseFile.CreateSpriteSheet(GraphicsDevice);
 
-        _entities = new IEntity[] { new Worker(spriteSheet) };
+        var selectableEntities = new IUnit[] { new Worker(spriteSheet) };
+        var baseEntities = new IGameEntity[] { new MouseSelection(GraphicsDevice) { Artifacts = selectableEntities } };
+
+        _entities = baseEntities.Concat(selectableEntities).ToArray();
 
         base.Initialize();
     }
@@ -42,9 +45,7 @@ public class Game : Microsoft.Xna.Framework.Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        Mouse.SetCursor(MouseCursor.FromTexture2D(Content.Load<Texture2D>("Cursor"), 23, 18));
-
-        // TODO: use this.Content to load your game content here
+        Mouse.SetCursor(MouseCursor.FromTexture2D(Content.Load<Texture2D>("Cursor"), 22, 17));
     }
 
     protected override void Update(GameTime gameTime)

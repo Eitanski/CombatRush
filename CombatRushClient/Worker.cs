@@ -1,21 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Aseprite;
 using MonoGame.Extended;
-using Stateless;
 using StateMachine;
 
 namespace CombatRushClient;
 
-public class Worker : IEntity
+public class Worker : IUnit
 {
-    public Fsm<WorkerAnimations, ButtonState> StateMachine { get; set; }
+    public Fsm<WorkerState, ButtonState> StateMachine { get; set; }
 
-    private Dictionary<WorkerAnimations, AnimatedSprite> _animations;
+    private Dictionary<WorkerAnimation, AnimatedSprite> _animations;
 
-    private WorkerAnimations _currentAnimation;
+    private WorkerAnimation _currentAnimation;
 
     private const float MovementFactor = 2.5f;
     public Vector2 Velocity { get; set; }
@@ -23,77 +23,75 @@ public class Worker : IEntity
     public Vector2 LastDesignatedPosition { get; set; }
     public Vector2 LastOriginalPosition { get; set; }
 
+    private bool _isSelected;
+
     public Worker(SpriteSheet spriteSheet)
     {
-        // StateMachine = new StateMachine<WorkerAnimations, ButtonState>(WorkerAnimations.Idle);
-        StateMachine = Fsm<WorkerAnimations, ButtonState>.Builder((WorkerAnimations.Idle))
-            //
-            .State(WorkerAnimations.Idle).OnEnter(args =>
+        StateMachine = Fsm<WorkerState, ButtonState>.Builder(WorkerState.Idle)
+            .State(WorkerState.Idle).OnEnter(_ =>
             {
-                SetAnimation(args.To.Identifier);
+                SetAnimation(WorkerAnimation.Idle);
                 Velocity = Vector2.Zero;
             })
-            .TransitionTo(WorkerAnimations.InitiateRun).On(ButtonState.Pressed)
+            .TransitionTo(WorkerState.InitiateRunning).On(ButtonState.Pressed).If(_ => _isSelected)
             //
-            .State(WorkerAnimations.InitiateRun).OnExit(_ => Velocity = Vector2.Zero).TransitionTo(WorkerAnimations.Run)
-            .On(ButtonState.Released)
+            .State(WorkerState.InitiateRunning).OnExit(_ => Velocity = Vector2.Zero).TransitionTo(WorkerState.Running)
+            .On(ButtonState.Released).If(_ => _isSelected)
             //
-            .State(WorkerAnimations.Run).OnEnter(args =>
+            .State(WorkerState.Running).OnEnter(_ =>
             {
-                SetAnimation(args.To.Identifier);
                 var mousePos = Mouse.GetState().Position.ToVector2();
-                mousePos -= new Vector2(96, 96);
+                mousePos -= new Vector2(96, 120);
                 LastOriginalPosition = Position;
                 LastDesignatedPosition = mousePos;
                 Velocity = (mousePos - Position).NormalizedCopy() * MovementFactor;
-            }).TransitionTo(WorkerAnimations.InitiateRun).On(ButtonState.Pressed)
+                SetAnimation(WorkerAnimation.Run);
+            }).TransitionTo(WorkerState.InitiateRunning).On(ButtonState.Pressed).If(_ => _isSelected)
             .Update(updateArgs =>
             {
                 if ((Position - LastOriginalPosition).Length() >
                     (LastDesignatedPosition - LastOriginalPosition).Length())
-                    updateArgs.Machine.JumpTo(WorkerAnimations.Idle);
+                    updateArgs.Machine.JumpTo(WorkerState.Idle);
             })
             .Build();
-        //
-        // StateMachine.OnTransitioned(transition =>
-        // {
-        //     if (transition.Destination != WorkerAnimations.InitiateRun)
-        //         SetAnimation(transition.Destination);
-        // });
 
-        // StateMachine.Configure(WorkerAnimations.Idle).Ignore(ButtonState.Released)
-        //     .Permit(ButtonState.Pressed, WorkerAnimations.InitiateRun);
-        //
-        // StateMachine.Configure(WorkerAnimations.InitiateRun).OnExit(_ => Velocity = Vector2.Zero)
-        //     .Ignore(ButtonState.Pressed).Permit(ButtonState.Released, WorkerAnimations.Run);
-        //
-        // StateMachine.Configure(WorkerAnimations.Run).Ignore(ButtonState.Released)
-        //     .OnEntry(() =>
-        //     {
-        //         var mousePos = Mouse.GetState().Position.ToVector2();
-        //         mousePos -= new Vector2(96, 96);
-        //         LastOriginalPosition = Position;
-        //         LastDesignatedPosition = mousePos;
-        //         Velocity = (mousePos - Position).NormalizedCopy() * MovementFactor;
-        //     })
-        //     .Permit(ButtonState.Pressed, WorkerAnimations.InitiateRun);
-
-        _animations = new Dictionary<WorkerAnimations, AnimatedSprite>
+        _animations = new Dictionary<WorkerAnimation, AnimatedSprite>
         {
-            { WorkerAnimations.Idle, spriteSheet.CreateAnimatedSprite("Idle") },
-            { WorkerAnimations.Run, spriteSheet.CreateAnimatedSprite("Run") },
-            { WorkerAnimations.CarryRun, spriteSheet.CreateAnimatedSprite("Run_Carry") },
-            { WorkerAnimations.CarryIdle, spriteSheet.CreateAnimatedSprite("Idle_Carry") },
-            { WorkerAnimations.Build, spriteSheet.CreateAnimatedSprite("Build") },
-            { WorkerAnimations.Cut, spriteSheet.CreateAnimatedSprite("Cut") }
+            { WorkerAnimation.Idle, spriteSheet.CreateAnimatedSprite("Idle") },
+            { WorkerAnimation.Run, spriteSheet.CreateAnimatedSprite("Run") },
+            { WorkerAnimation.CarryRun, spriteSheet.CreateAnimatedSprite("Run_Carry") },
+            { WorkerAnimation.CarryIdle, spriteSheet.CreateAnimatedSprite("Idle_Carry") },
+            { WorkerAnimation.Build, spriteSheet.CreateAnimatedSprite("Build") },
+            { WorkerAnimation.Cut, spriteSheet.CreateAnimatedSprite("Cut") }
         };
 
-        SetAnimation(WorkerAnimations.Idle);
+        SetAnimation(WorkerAnimation.Idle);
     }
 
-    private void SetAnimation(WorkerAnimations animation)
+    public void OnSelect()
+    {
+        _isSelected = true;
+        SetSelectionOverlay();
+    }
+
+    public void OnDeselect()
+    {
+        _isSelected = false;
+        RemoveSelectionOverlay();
+    }
+
+    private void SetSelectionOverlay()
+    {
+    }
+
+    private void RemoveSelectionOverlay()
+    {
+    }
+
+    private void SetAnimation(WorkerAnimation animation)
     {
         _currentAnimation = animation;
+        _animations[_currentAnimation].FlipHorizontally = Velocity.X <= 0;
         _animations[_currentAnimation].Play();
     }
 
@@ -101,7 +99,7 @@ public class Worker : IEntity
     {
         StateMachine.Trigger(Mouse.GetState().RightButton);
         StateMachine.Update(gameTime.ElapsedGameTime);
-        
+
         _animations[_currentAnimation].Update(gameTime);
         Position += Velocity;
     }
@@ -112,8 +110,10 @@ public class Worker : IEntity
     }
 }
 
-public enum WorkerStates
+public enum WorkerState
 {
+    NotSelected,
+    Selected,
     Building,
     Cutting,
     Attacking,
@@ -125,7 +125,7 @@ public enum WorkerStates
     CarryIdle
 }
 
-public enum WorkerAnimations
+public enum WorkerAnimation
 {
     Build,
     Cut,
