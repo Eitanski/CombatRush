@@ -30,7 +30,7 @@ public class Game : Microsoft.Xna.Framework.Game
             aseFile = AsepriteFileLoader.FromStream("Pawn_Blue", stream, preMultiplyAlpha: true);
         }
 
-        _font = Content.Load<SpriteFont>("File");
+        _font = Content.Load<SpriteFont>("File");   
 
         var spriteSheet = aseFile.CreateSpriteSheet(GraphicsDevice);
 
