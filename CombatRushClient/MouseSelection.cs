@@ -68,8 +68,8 @@ public class MouseSelection : IGameEntity
     }
 
     public void Update(GameTime gameTime)
-    {
-        _stateMachine.Trigger(Mouse.GetState().LeftButton);
+    { 
+        _stateMachine.Trigger (Mouse.GetState().LeftButton);
         _stateMachine.Update(gameTime.ElapsedGameTime);
     }
 

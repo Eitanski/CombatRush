@@ -19,7 +19,6 @@ public class Worker : IUnit
 
     private const float MovementFactor = 2.5f;
     public Vector2 Velocity { get; set; }
-    public Vector2 Position { get; set; }
     public Vector2 LastDesignatedPosition { get; set; }
     public Vector2 LastOriginalPosition { get; set; }
 
@@ -82,6 +81,7 @@ public class Worker : IUnit
 
     private void SetSelectionOverlay()
     {
+        
     }
 
     private void RemoveSelectionOverlay()
@@ -108,6 +108,8 @@ public class Worker : IUnit
     {
         spriteBatch.Draw(_animations[_currentAnimation], Position);
     }
+
+    public Vector2 Position { get; set; }
 }
 
 public enum WorkerState

@@ -1,0 +1,34 @@
+syntax = "proto3";
+package combat_rush.v1;
+
+message Vec2{float x = 1;float y = 2;}
+
+enum UnitType {
+  UNIT_TYPE_UNSPECIFIED = 0;
+  WORKER = 1;
+  SOLDIER = 2;
+}
+
+enum DamageType {
+  DAMAGE_TYPE_UNSPECIFIED = 0;
+  MELEE = 1;
+  RANGED = 2;
+  MAGIC = 3;
+}
+
+enum FactionType{
+  FACTION_TYPE_UNSPECIFIED = 0;
+  HUMAN = 1;
+  ORC = 2;
+}
+
+message JoinRequest{
+  FactionType faction = 1;
+  string playerName = 2;
+}
+
+message JoinAffirmation{
+  Vec2 startingPosition = 1;
+}
+
+

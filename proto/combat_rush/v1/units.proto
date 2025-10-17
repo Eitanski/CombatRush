@@ -1,0 +1,37 @@
+﻿syntax = "proto3";
+package combat_rush.v1;
+
+import "combat_rush/v1/common.proto";
+
+message UnitState {
+  uint32   unit_id = 1;
+  UnitType kind = 2;
+  uint32   owner_player_id = 3;
+  Vec2     pos = 4;
+  Vec2     vel = 5;
+  float    hp = 6;
+}
+
+// Compact per-unit delta (use a bitmask to keep wire small)
+message UnitDelta {
+  uint32 unit_id = 1;
+  uint32 owner_player_id = 2;
+  oneof change{
+    UnitSpawn spawned = 3;
+    UnitMoved moved = 4;
+    UnitStopped stopped = 5;
+  }
+}
+
+message UnitSpawn{
+  Vec2 position = 1;
+}
+
+message UnitMoved{
+  Vec2 velocity = 1;
+}
+
+message UnitStopped{
+
+}
+

@@ -1,0 +1,19 @@
+﻿syntax = "proto3";
+package combat_rush.v1;
+
+import "combat_rush/v1/common.proto";
+import "combat_rush/v1/units.proto";
+
+// messages that the server receives. 
+message ServerTargeted{
+  oneof message {
+    JoinRequest joinRequest = 1;
+  }
+}
+
+message ClientTargeted{
+  oneof message{
+    JoinAffirmation joinAffirmation = 1;
+    UnitDelta delta = 2;
+  }
+}
