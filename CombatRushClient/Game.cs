@@ -49,7 +49,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
         _entities = baseEntities.Concat(selectableEntities).ToArray();
 
-        _networkingManager.Initialize("localhost", 7000, _cts.Token);
+        // _networkingManager.Initialize("localhost", 7000, _cts.Token);
 
         base.Initialize();
     }
